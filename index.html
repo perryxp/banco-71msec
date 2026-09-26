@@ -270,6 +270,18 @@ function showQuestion(){
     b.onclick = () => answer(oi);
     box.appendChild(b);
   });
+  if (q.h) {
+    const hint = document.createElement('div');
+    hint.className = 'hint-box';
+    hint.innerHTML = '<button type="button" class="ghost hint-btn" id="hintBtn">💡 Ver pista</button><div id="hintText" class="hint-text hidden"></div>';
+    hint.querySelector('#hintText').textContent = q.h;
+    document.querySelector('#qOpts').insertAdjacentElement('afterend', hint);
+    hint.querySelector('#hintBtn').onclick = () => {
+      const text = hint.querySelector('#hintText');
+      text.classList.toggle('hidden');
+      hint.querySelector('#hintBtn').textContent = text.classList.contains('hidden') ? '💡 Ver pista' : '🙈 Ocultar pista';
+    };
+  }
   $('qFb').innerHTML = '';
   $('qSrc').innerHTML = '';
   $('nextBtn').disabled = true;
@@ -294,12 +306,7 @@ function answer(oi){
   if (q.inf) html += `<div class="note">La fuente no indica la solución; la respuesta mostrada es la propuesta según el temario.</div>`;
   if (q.alt) q.alt.forEach(a => { html += `<div class="note">Atención: en ${a.s.map(esc).join(', ')} se marca como correcta «${esc(a.o)}». Aquí se ha tomado la respuesta que aparece en la mayoría de fuentes.</div>`; });
   if (q.e) html += `<div class="theory-box"><div class="theory-title">📖 Teoría relacionada</div><div>${esc(q.e)}</div>${q.r ? `<div class="theory-ref">${esc(q.r)}</div>` : ""}</div>`;
-  if (q.h) html += `<div class="hint-box"><button type="button" class="ghost hint-btn" id="hintBtn">💡 Ver pista</button><div id="hintText" class="hint-text hidden">${esc(q.h)}</div></div>`;
   $('qFb').innerHTML = html;
-  if (q.h) $('hintBtn').onclick = () => {
-    $('hintText').classList.toggle('hidden');
-    $('hintBtn').textContent = $('hintText').classList.contains('hidden') ? '💡 Ver pista' : '🙈 Ocultar pista';
-  };
   $('qSrc').innerHTML = `<b>${q.s.length>1?'Fuentes':'Fuente'} de la pregunta:</b><ul>${q.s.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
   $('nextBtn').disabled = false;
   updateStats();
