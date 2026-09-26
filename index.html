@@ -71,6 +71,14 @@ button:disabled{opacity:.45;cursor:default}
 .hidden{display:none!important}
 kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:.8rem}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.card{padding:16px}}
+
+.searchbox{display:flex;gap:8px;align-items:center;margin-top:10px}
+.searchbox input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}
+.searchbox input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.search-results{margin-top:10px;display:grid;gap:8px;max-height:360px;overflow:auto}
+.search-result{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer}
+.search-result:hover{border-color:var(--accent);background:var(--accent-soft)}
+.search-result small{display:block;color:var(--muted);margin-top:3px}
 </style>
 </head>
 <body>
@@ -104,6 +112,16 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <label class="src"><input type="checkbox" id="optShuffleA" checked> Mezclar el orden de las respuestas</label>
         <label class="src"><input type="checkbox" id="optAuto"> Pasar a la siguiente automáticamente si acierto</label>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Buscar preguntas</h2>
+      <div class="searchbox">
+        <input type="search" id="searchInput" placeholder="Escribe una palabra o frase..." autocomplete="off">
+        <button class="ghost" id="clearSearch" type="button">Limpiar</button>
+      </div>
+      <div id="searchResults" class="search-results hidden"></div>
+      <p class="muted small" style="margin:10px 0 0">Busca en el enunciado de las preguntas. Haz clic en una pregunta para seleccionarla en una nueva prueba.</p>
     </div>
     <div class="actions" style="justify-content:flex-end"><button id="startBtn">Empezar prueba</button></div>
   </section>
@@ -158,7 +176,24 @@ const $ = id => document.getElementById(id);
 const LET = ['A','B','C','D','E','F'];
 let state = null;
 
-// ---------- Tema ----------
+
+// ---------- Búsqueda ----------
+function renderSearch(){
+  const term=$('searchInput').value.trim().toLowerCase();
+  const box=$('searchResults');
+  if(!term){box.classList.add('hidden');box.innerHTML='';return;}
+  const matches=QUESTIONS.map((q,i)=>({q,i})).filter(x=>x.q.q.toLowerCase().includes(term));
+  box.classList.remove('hidden');
+  if(!matches.length){box.innerHTML='<div class="muted small">No se han encontrado preguntas.</div>';return;}
+  box.innerHTML=matches.slice(0,100).map(x=>'<div class="search-result" data-qi="'+x.i+'">'+esc(x.q.q)+'<small>'+x.q.s.map(esc).join(' · ')+'</small></div>').join('');
+  box.querySelectorAll('.search-result').forEach(el=>el.onclick=()=>{
+    const qi=+el.dataset.qi;
+    startQuiz([qi]);
+  });
+}
+$('searchInput').addEventListener('input',renderSearch);
+$('clearSearch').onclick=()=>{$('searchInput').value='';renderSearch();$('searchInput').focus();};
+\n// ---------- Tema ----------
 $('themeBtn').onclick = () => {
   const r = document.documentElement;
   const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
