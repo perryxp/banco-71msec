@@ -193,7 +193,8 @@ function renderSearch(){
 }
 $('searchInput').addEventListener('input',renderSearch);
 $('clearSearch').onclick=()=>{$('searchInput').value='';renderSearch();$('searchInput').focus();};
-\n// ---------- Tema ----------
+
+// ---------- Tema ----------
 $('themeBtn').onclick = () => {
   const r = document.documentElement;
   const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
