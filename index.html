@@ -263,6 +263,7 @@ function showQuestion(){
   $('qNum').textContent = `Pregunta ${state.pos+1} de ${state.ids.length}`;
   $('qText').textContent = q.q;
   const box = $('qOpts'); box.innerHTML = '';
+  document.querySelectorAll('.hint-box').forEach(el => el.remove());
   state.order.forEach((oi,k) => {
     const b = document.createElement('button');
     b.className = 'opt'; b.dataset.oi = oi;
