@@ -129,7 +129,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       <div id="searchResults" class="search-results hidden"></div>
       <p class="muted small" style="margin:10px 0 0">Busca en el enunciado de las preguntas. Haz clic en una pregunta para seleccionarla en una nueva prueba.</p>
     </div>
-    <div class="actions" style="justify-content:flex-end"><button id="startBtn">Empezar prueba</button></div>
+    <div class="actions" style="justify-content:space-between"><button class="ghost" id="browseBtn" type="button">Ver preguntas y respuestas correctas</button><button id="startBtn">Empezar prueba</button></div>
   </section>
 
   <!-- PRUEBA -->
@@ -169,6 +169,27 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="card" id="revCard">
       <h2>Preguntas falladas</h2>
       <div class="review" id="review"></div>
+    </div>
+  </section>
+
+  <!-- REPASO COMPLETO -->
+  <section id="browse" class="hidden">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><h2 style="margin:0">Repaso de preguntas y respuestas</h2><p class="muted small" id="browseInfo" style="margin:6px 0 0"></p></div>
+        <button class="ghost" id="browseBack">Volver</button>
+      </div>
+      <div class="actions" style="align-items:center">
+        <button class="ghost" id="browsePrev">← Anterior</button>
+        <strong id="browsePage"></strong>
+        <button class="ghost" id="browseNext">Siguiente →</button>
+      </div>
+    </div>
+    <div id="browseList"></div>
+    <div class="card actions" style="align-items:center">
+      <button class="ghost" id="browsePrev2">← Anterior</button>
+      <strong id="browsePage2"></strong>
+      <button class="ghost" id="browseNext2">Siguiente →</button>
     </div>
   </section>
 </div>
@@ -247,6 +268,34 @@ $('startBtn').onclick = () => {
   }
   startQuiz(pool);
 };
+
+let browseIds = [], browsePage = 0;
+const BROWSE_SIZE = 50;
+function openBrowse(){
+  browseIds = selectedPool();
+  browsePage = 0;
+  $('setup').classList.add('hidden'); $('result').classList.add('hidden'); $('browse').classList.remove('hidden');
+  renderBrowse();
+}
+function renderBrowse(){
+  const pages = Math.max(1, Math.ceil(browseIds.length / BROWSE_SIZE));
+  const start = browsePage * BROWSE_SIZE, end = Math.min(start + BROWSE_SIZE, browseIds.length);
+  $('browseInfo').textContent = `${browseIds.length} preguntas · Respuestas correctas marcadas en verde · ${BROWSE_SIZE} por página`;
+  const label = `Página ${browsePage+1} de ${pages}`;
+  $('browsePage').textContent = label; $('browsePage2').textContent = label;
+  $('browsePrev').disabled = $('browsePrev2').disabled = browsePage === 0;
+  $('browseNext').disabled = $('browseNext2').disabled = browsePage >= pages-1;
+  $('browseList').innerHTML = browseIds.slice(start,end).map((qi,j) => {
+    const q = QUESTIONS[qi];
+    return `<article class="card browse-q"><div class="qnum">Pregunta ${start+j+1} de ${browseIds.length}</div><p class="qtext">${esc(q.q)}</p><div class="opts browse-opts">${q.o.map((o,i)=>`<div class="opt ${q.c.includes(i)?'ok':''}"><span class="l">${LET[i]}</span><span>${esc(o)} ${q.c.includes(i)?'<strong>✓ Correcta</strong>':''}</span></div>`).join('')}</div>${q.c.length>1?'<p class="note">Esta pregunta admite varias respuestas válidas.</p>':''}${q.inf?'<p class="note">La fuente no indica la solución; se muestra la respuesta propuesta según el temario.</p>':''}<div class="source"><b>Fuente:</b> ${q.s.map(esc).join(' · ')}</div></article>`;
+  }).join('');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function browseMove(delta){browsePage=Math.max(0,Math.min(Math.ceil(browseIds.length/BROWSE_SIZE)-1,browsePage+delta));renderBrowse();}
+$('browseBtn').onclick = openBrowse;
+$('browseBack').onclick = backToSetup;
+$('browsePrev').onclick = $('browsePrev2').onclick = () => browseMove(-1);
+$('browseNext').onclick = $('browseNext2').onclick = () => browseMove(1);
 
 function startQuiz(ids){
   state = {ids, pos:0, ok:0, ko:0, answered:false, wrong:[], order:null};
@@ -355,7 +404,7 @@ function finish(){
 }
 $('retryBtn').onclick = () => startQuiz(shuffle(state.wrong.map(w=>w.qi)));
 $('newBtn').onclick = backToSetup;
-function backToSetup(){ $('quiz').classList.add('hidden'); $('result').classList.add('hidden'); $('setup').classList.remove('hidden'); updateAvail(); }
+function backToSetup(){ $('quiz').classList.add('hidden'); $('result').classList.add('hidden'); $('browse').classList.add('hidden'); $('setup').classList.remove('hidden'); updateAvail(); }
 
 renderSources();
 </script>
